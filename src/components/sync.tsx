@@ -119,8 +119,12 @@ export function CredencialesIOL({ lista }: { lista: CredencialInfo[] }) {
 }
 
 function FilaCredencial({ c }: { c: CredencialInfo }) {
-  const [estado, accion, guardando] = useActionState<EstadoSync, FormData>(guardarCredencial, {});
   const [abierta, setAbierta] = useState(!c.cargada_el);
+  const [estado, accion, guardando] = useActionState<EstadoSync, FormData>(async (p, f) => {
+    const r = await guardarCredencial(p, f);
+    if (r.ok) setAbierta(false);
+    return r;
+  }, {});
   const campo = "rounded-md border border-borde bg-completar px-2 py-1.5 text-sm w-full";
   return (
     <div className="rounded-lg border border-borde p-3 text-sm">
