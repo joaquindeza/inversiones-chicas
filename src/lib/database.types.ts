@@ -258,6 +258,42 @@ export type Database = {
           },
         ]
       }
+      eventos: {
+        Row: {
+          descripcion: string
+          fecha: string
+          id: number
+          ticker: string | null
+        }
+        Insert: {
+          descripcion: string
+          fecha: string
+          id?: never
+          ticker?: string | null
+        }
+        Update: {
+          descripcion?: string
+          fecha?: string
+          id?: never
+          ticker?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "eventos_ticker_fkey"
+            columns: ["ticker"]
+            isOneToOne: false
+            referencedRelation: "tickers"
+            referencedColumns: ["ticker"]
+          },
+          {
+            foreignKeyName: "eventos_ticker_fkey"
+            columns: ["ticker"]
+            isOneToOne: false
+            referencedRelation: "v_tickers"
+            referencedColumns: ["ticker"]
+          },
+        ]
+      }
       hermanas: {
         Row: {
           color: string
@@ -279,6 +315,24 @@ export type Database = {
           id?: number
           nombre?: string
           orden?: number
+        }
+        Relationships: []
+      }
+      indices: {
+        Row: {
+          fecha: string
+          serie: string
+          valor: number
+        }
+        Insert: {
+          fecha: string
+          serie: string
+          valor: number
+        }
+        Update: {
+          fecha?: string
+          serie?: string
+          valor?: number
         }
         Relationships: []
       }
@@ -621,6 +675,72 @@ export type Database = {
           },
         ]
       }
+      plan_aportes: {
+        Row: {
+          activo: boolean
+          aportante: Database["public"]["Enums"]["aportante"]
+          desde: string
+          dia_mes: number
+          hermana_id: number
+          moneda: Database["public"]["Enums"]["moneda"]
+          monto: number
+        }
+        Insert: {
+          activo?: boolean
+          aportante?: Database["public"]["Enums"]["aportante"]
+          desde?: string
+          dia_mes?: number
+          hermana_id: number
+          moneda?: Database["public"]["Enums"]["moneda"]
+          monto: number
+        }
+        Update: {
+          activo?: boolean
+          aportante?: Database["public"]["Enums"]["aportante"]
+          desde?: string
+          dia_mes?: number
+          hermana_id?: number
+          moneda?: Database["public"]["Enums"]["moneda"]
+          monto?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_aportes_hermana_id_fkey"
+            columns: ["hermana_id"]
+            isOneToOne: true
+            referencedRelation: "hermanas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plan_aportes_hermana_id_fkey"
+            columns: ["hermana_id"]
+            isOneToOne: true
+            referencedRelation: "v_categorias_hermana"
+            referencedColumns: ["hermana_id"]
+          },
+          {
+            foreignKeyName: "plan_aportes_hermana_id_fkey"
+            columns: ["hermana_id"]
+            isOneToOne: true
+            referencedRelation: "v_efectivo"
+            referencedColumns: ["hermana_id"]
+          },
+          {
+            foreignKeyName: "plan_aportes_hermana_id_fkey"
+            columns: ["hermana_id"]
+            isOneToOne: true
+            referencedRelation: "v_resumen_hermana"
+            referencedColumns: ["hermana_id"]
+          },
+          {
+            foreignKeyName: "plan_aportes_hermana_id_fkey"
+            columns: ["hermana_id"]
+            isOneToOne: true
+            referencedRelation: "v_seguimiento"
+            referencedColumns: ["hermana_id"]
+          },
+        ]
+      }
       plan_items: {
         Row: {
           cantidad: number | null
@@ -762,6 +882,39 @@ export type Database = {
           orden?: number
         }
         Relationships: []
+      }
+      precios_hist: {
+        Row: {
+          fecha: string
+          precio_usd: number
+          ticker: string
+        }
+        Insert: {
+          fecha: string
+          precio_usd: number
+          ticker: string
+        }
+        Update: {
+          fecha?: string
+          precio_usd?: number
+          ticker?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "precios_hist_ticker_fkey"
+            columns: ["ticker"]
+            isOneToOne: false
+            referencedRelation: "tickers"
+            referencedColumns: ["ticker"]
+          },
+          {
+            foreignKeyName: "precios_hist_ticker_fkey"
+            columns: ["ticker"]
+            isOneToOne: false
+            referencedRelation: "v_tickers"
+            referencedColumns: ["ticker"]
+          },
+        ]
       }
       proy_gastos: {
         Row: {

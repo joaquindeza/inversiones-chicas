@@ -134,3 +134,31 @@ export async function credencialesIol() {
   const s = await crearCliente();
   return lista(await s.from("iol_credenciales").select("hermana_id, usuario_mascara, cargada_el, ultimo_login_ok"));
 }
+
+export async function hermana(id: number) {
+  const s = await crearCliente();
+  return uno(await s.from("hermanas").select("*").eq("id", id).maybeSingle());
+}
+
+/** Supuestos, tramos de aporte y gastos planeados de la proyección de una hermana. */
+export async function proyeccion(hermanaId: number) {
+  const s = await crearCliente();
+  const [p, t, g] = await Promise.all([
+    s.from("proyecciones").select("*").eq("hermana_id", hermanaId).maybeSingle(),
+    s.from("proy_tramos").select("*").eq("hermana_id", hermanaId).order("desde_anio"),
+    s.from("proy_gastos").select("*").eq("hermana_id", hermanaId).order("anio"),
+  ]);
+  return { supuestos: uno(p), tramos: lista(t), gastos: lista(g) };
+}
+
+export async function tesis(hermanaId: number) {
+  const s = await crearCliente();
+  return lista(await s.from("tesis").select("*").eq("hermana_id", hermanaId));
+}
+
+export async function indices() {
+  const s = await crearCliente();
+  const filas = lista(await s.from("indices").select("serie, fecha, valor").order("fecha"));
+  const de = (serie: string) => filas.filter((f) => f.serie === serie).map((f) => ({ fecha: f.fecha, valor: Number(f.valor) }));
+  return { sp500: de("SP500"), merval: de("MERVAL"), tna: de("PLAZO_FIJO_TNA") };
+}

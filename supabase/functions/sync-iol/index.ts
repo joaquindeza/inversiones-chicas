@@ -113,6 +113,37 @@ async function actualizarMep(db: SupabaseClient) {
   return { vivo, diasHistorico: filas.length };
 }
 
+// ------------------------------------------------------------------ índices para comparar (idea 6)
+// S&P 500 y Merval de Yahoo Finance (API no oficial: si deja de andar, el resto del sync sigue),
+// tasa de plazo fijo a 30 días del BCRA. Desde un mes antes del primer movimiento.
+async function actualizarIndices(db: SupabaseClient) {
+  const { data: primero } = await db.from("movimientos").select("fecha").order("fecha").limit(1).maybeSingle();
+  const desde = new Date(`${primero?.fecha ?? hoyAr()}T00:00:00Z`).getTime() - 35 * 86_400_000;
+  const filas: { serie: string; fecha: string; valor: number }[] = [];
+  const yahoo = async (simbolo: string, serie: string) => {
+    const r = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(simbolo)}?period1=${Math.floor(desde / 1000)}&period2=${Math.floor(Date.now() / 1000)}&interval=1d`, { headers: UA });
+    if (!r.ok) throw new Error(`Yahoo ${simbolo} ${r.status}`);
+    const d = (await r.json()).chart.result[0];
+    (d.timestamp as number[]).forEach((t, i) => {
+      const v = d.indicators.quote[0].close[i];
+      if (v != null) filas.push({ serie, fecha: iso(new Date(t * 1000)), valor: v });
+    });
+  };
+  const errores: string[] = [];
+  for (const [sim, serie] of [["^GSPC", "SP500"], ["^MERV", "MERVAL"]]) {
+    try { await yahoo(sim, serie); } catch (e) { errores.push((e as Error).message); }
+  }
+  try {
+    const r = await fetch(`https://api.bcra.gob.ar/estadisticas/v4.0/monetarias/12?desde=${iso(new Date(desde))}&hasta=${hoyAr()}&limit=3000`);
+    const d = await r.json();
+    for (const x of d.results?.[0]?.detalle ?? []) filas.push({ serie: "PLAZO_FIJO_TNA", fecha: x.fecha, valor: Number(x.valor) });
+  } catch (e) { errores.push(`BCRA: ${(e as Error).message}`); }
+  for (let i = 0; i < filas.length; i += 500) {
+    await db.from("indices").upsert(filas.slice(i, i + 500), { onConflict: "serie,fecha" });
+  }
+  return { filas: filas.length, errores };
+}
+
 // ------------------------------------------------------------------ IOL (solo GET, salvo el login)
 async function iolLogin(usuario: string, clave: string): Promise<string> {
   const r = await fetch(`${IOL}/token`, {
@@ -307,6 +338,7 @@ async function correr(db: SupabaseClient, logId: number) {
     const mep = await actualizarMep(db);
     resumen.mep = mep.vivo;
     resumen.mep_dias = mep.diasHistorico;
+    try { resumen.indices = await actualizarIndices(db); } catch (e) { resumen.indices = { error: (e as Error).message }; }
     const { data: hs } = await db.from("hermanas").select("id, nombre").order("orden");
     const { data: creds } = await db.from("iol_credenciales").select("hermana_id");
     const conCred = new Set((creds ?? []).map((c) => c.hermana_id));
@@ -319,6 +351,11 @@ async function correr(db: SupabaseClient, logId: number) {
         fallas++;
         resumen[h.nombre] = { error: (e as Error).message };
       }
+    }
+    // precio del día en USD de cada ticker con precio (para la alerta de movimientos del mes)
+    const { data: tks } = await db.from("v_tickers").select("ticker, precio_usd").not("precio_usd", "is", null);
+    if (tks?.length) {
+      await db.from("precios_hist").upsert(tks.map((t) => ({ ticker: t.ticker, fecha: hoyAr(), precio_usd: t.precio_usd })), { onConflict: "ticker,fecha" });
     }
     const estado = hermanasConCred === 0 ? "parcial" : fallas === 0 ? "ok" : fallas < hermanasConCred ? "parcial" : "error";
     await db.from("sync_log").update({

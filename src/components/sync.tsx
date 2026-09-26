@@ -61,7 +61,7 @@ type ResumenHermana = {
 
 function DetalleSync({ resumen }: { resumen: unknown }) {
   const r = (resumen ?? {}) as Record<string, unknown>;
-  const hermanas = Object.entries(r).filter(([k]) => !["mep", "mep_dias"].includes(k)) as [string, ResumenHermana][];
+  const hermanas = Object.entries(r).filter(([k]) => !["mep", "mep_dias", "indices"].includes(k)) as [string, ResumenHermana][];
   const mep = r.mep as { valor: number; fecha: string; fuente: string } | undefined;
   return (
     <div className="rounded-lg bg-fondo p-3 space-y-2">
