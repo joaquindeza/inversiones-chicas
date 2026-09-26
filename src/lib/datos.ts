@@ -122,3 +122,15 @@ export function sumarResumenes(rs: Resumen[]) {
     joaquin: t("aportes_joaquin_usd"), propio: t("aportes_propio_usd"), regalo: t("aportes_regalo_usd"),
   };
 }
+
+export async function frecuenciaSync(): Promise<string> {
+  const s = await crearCliente();
+  const r = uno(await s.from("config").select("valor").eq("clave", "sync_frecuencia").maybeSingle());
+  return typeof r?.valor === "string" ? r.valor : "off";
+}
+
+/** Estado de las credenciales de IOL (sin la clave: esa vive en Vault y no se lee). */
+export async function credencialesIol() {
+  const s = await crearCliente();
+  return lista(await s.from("iol_credenciales").select("hermana_id, usuario_mascara, cargada_el, ultimo_login_ok"));
+}

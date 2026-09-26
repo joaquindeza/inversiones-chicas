@@ -1,13 +1,41 @@
 import { Seccion, Titulo } from "@/components/ui";
-import { categorias, hermanas } from "@/lib/datos";
+import { CredencialesIOL, PanelSync, SelectorFrecuencia } from "@/components/sync";
+import { categorias, credencialesIol, frecuenciaSync, hermanas, ultimoSync } from "@/lib/datos";
 import { FormClaves, FormObjetivos } from "./forms";
 
 export default async function Configuracion() {
-  const [cats, hs] = await Promise.all([categorias(), hermanas()]);
+  const [cats, hs, creds, frecuencia, sync] = await Promise.all([
+    categorias(), hermanas(), credencialesIol(), frecuenciaSync(), ultimoSync(),
+  ]);
+  const cred = new Map(creds.map((c) => [c.hermana_id, c]));
   return (
     <>
-      <Titulo sub="Objetivos de cartera, accesos y (en la etapa 4) la sincronización con IOL.">Configuración</Titulo>
+      <Titulo sub="Sincronización con IOL, objetivos de cartera y accesos.">Configuración</Titulo>
       <div className="grid lg:grid-cols-2 gap-4">
+        <Seccion titulo="Sincronización con IOL" className="lg:col-span-2">
+          <div className="grid lg:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm font-semibold mb-2">Sincronización automática</p>
+                <SelectorFrecuencia actual={frecuencia} />
+              </div>
+              <PanelSync ultimo={sync} frecuencia={frecuencia} conDetalle />
+            </div>
+            <div>
+              <p className="text-sm font-semibold mb-1">Credenciales de IOL</p>
+              <p className="text-xs text-tenue mb-3">
+                Se guardan cifradas en Supabase Vault y solo las usa el sync (que es de solo lectura: nunca compra, vende ni
+                transfiere). Desde acá se pueden cargar o cambiar, pero nunca se pueden ver.
+              </p>
+              <CredencialesIOL lista={hs.map((h) => ({
+                hermana_id: h.id, nombre: h.nombre, color: h.color,
+                usuario_mascara: cred.get(h.id)?.usuario_mascara ?? null,
+                cargada_el: cred.get(h.id)?.cargada_el ?? null,
+                ultimo_login_ok: cred.get(h.id)?.ultimo_login_ok ?? null,
+              }))} />
+            </div>
+          </div>
+        </Seccion>
         <Seccion titulo="Objetivo por categoría">
           <p className="text-sm text-tenue mb-3">Perfil agresivo: ~15% en Bonos/ONs y el resto renta variable. Los vacíos no se comparan.</p>
           <FormObjetivos categorias={cats.map((c) => ({ id: c.id, nombre: c.nombre, color: c.color, objetivo: c.objetivo_pct }))} />
@@ -18,12 +46,7 @@ export default async function Configuracion() {
           </p>
           <FormClaves perfiles={[...hs.map((h) => ({ clave: String(h.id), nombre: h.nombre })), { clave: "admin", nombre: "Joaquín (vos)" }]} />
         </Seccion>
-        <Seccion titulo="Sincronización con IOL" className="lg:col-span-2">
-          <p className="text-sm text-tenue">
-            Llega en la etapa 4: credenciales de IOL (se cargan acá y quedan cifradas en Supabase Vault; nunca se pueden leer de
-            vuelta), interruptor apagado / cada 6 horas / diaria, y el botón “Sincronizar ahora”.
-          </p>
-        </Seccion>
+
       </div>
     </>
   );

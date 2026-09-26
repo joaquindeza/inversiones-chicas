@@ -15,10 +15,13 @@ const CON_TICKER = ["Compra", "Venta", "Ingreso de títulos"];
 
 const hoy = () => new Date().toLocaleDateString("sv-SE", { timeZone: "America/Argentina/Buenos_Aires" });
 
-export function TablaMovimientos({ movimientos, hermanas, tickers, plataformas }: {
-  movimientos: MovimientoV[]; hermanas: HermanaMin[]; tickers: TickerMin[]; plataformas: string[];
+export type Precarga = { tipo: string; hermana_id: number | null; monto: number | null; moneda: string } | null;
+
+export function TablaMovimientos({ movimientos, hermanas, tickers, plataformas, precarga }: {
+  movimientos: MovimientoV[]; hermanas: HermanaMin[]; tickers: TickerMin[]; plataformas: string[]; precarga?: Precarga;
 }) {
-  const [editando, setEditando] = useState<MovimientoV | "nuevo" | null>(null);
+  // si viene de una alerta ("aporte sin registrar"), el formulario abre ya completo
+  const [editando, setEditando] = useState<MovimientoV | "nuevo" | null>(precarga ? "nuevo" : null);
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [borrando, startBorrar] = useTransition();
   const color = new Map(hermanas.map((h) => [h.id, h]));
@@ -45,6 +48,7 @@ export function TablaMovimientos({ movimientos, hermanas, tickers, plataformas }
         <Formulario
           key={editando === "nuevo" ? "nuevo" : editando.id!}
           mov={editando === "nuevo" ? null : editando}
+          precarga={editando === "nuevo" ? precarga ?? null : null}
           hermanas={hermanas} tickers={tickers} plataformas={plataformas}
           cerrar={(msg) => { setEditando(null); if (msg) setMensaje(msg); }}
         />
@@ -97,11 +101,11 @@ export function TablaMovimientos({ movimientos, hermanas, tickers, plataformas }
   );
 }
 
-function Formulario({ mov, hermanas, tickers, plataformas, cerrar }: {
-  mov: MovimientoV | null; hermanas: HermanaMin[]; tickers: TickerMin[]; plataformas: string[]; cerrar: (msg?: string) => void;
+function Formulario({ mov, precarga, hermanas, tickers, plataformas, cerrar }: {
+  mov: MovimientoV | null; precarga?: Precarga; hermanas: HermanaMin[]; tickers: TickerMin[]; plataformas: string[]; cerrar: (msg?: string) => void;
 }) {
   const [estado, accion, guardando] = useActionState<EstadoForm, FormData>(guardarMovimiento, {});
-  const [tipo, setTipo] = useState<string>(mov?.tipo ?? "Compra");
+  const [tipo, setTipo] = useState<string>(mov?.tipo ?? precarga?.tipo ?? "Compra");
 
   useEffect(() => {
     if (estado.ok) cerrar(estado.ok);
@@ -111,7 +115,7 @@ function Formulario({ mov, hermanas, tickers, plataformas, cerrar }: {
   const conTicker = CON_TICKER.includes(tipo) || tipo === "Renta/Dividendo";
 
   return (
-    <Seccion titulo={mov ? `Editar movimiento #${mov.id}` : "Cargar movimiento"} className="mb-4 border-marino/40"
+    <Seccion titulo={mov ? `Editar movimiento #${mov.id}` : precarga ? `Cargar ${precarga.tipo.toLowerCase()} detectado en IOL — completá la fecha real` : "Cargar movimiento"} className="mb-4 border-marino/40"
       accion={<button onClick={() => cerrar()} className="text-sm text-tenue hover:text-tinta">Cancelar</button>}>
       <form action={accion} className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 text-sm">
         {mov && <input type="hidden" name="id" value={mov.id!} />}
@@ -119,7 +123,7 @@ function Formulario({ mov, hermanas, tickers, plataformas, cerrar }: {
           <input type="date" name="fecha" required defaultValue={mov?.fecha ?? hoy()} className={campo} />
         </label>
         <label className="flex flex-col gap-1">Hermana
-          <select name="hermana_id" required defaultValue={mov?.hermana_id ?? ""} className={campo}>
+          <select name="hermana_id" required defaultValue={mov?.hermana_id ?? precarga?.hermana_id ?? ""} className={campo}>
             <option value="" disabled>Elegí…</option>
             {hermanas.map((h) => <option key={h.id} value={h.id}>{h.nombre}</option>)}
           </select>
@@ -144,10 +148,10 @@ function Formulario({ mov, hermanas, tickers, plataformas, cerrar }: {
           </label>
         )}
         <label className="flex flex-col gap-1">Monto total{CON_TICKER.includes(tipo) ? " (con comisiones)" : ""}
-          <input name="monto" inputMode="decimal" required defaultValue={mov?.monto ?? ""} className={campo} placeholder="Ej: 100.000,50" />
+          <input name="monto" inputMode="decimal" required defaultValue={mov?.monto ?? precarga?.monto ?? ""} className={campo} placeholder="Ej: 100.000,50" />
         </label>
         <label className="flex flex-col gap-1">Moneda
-          <select name="moneda" defaultValue={mov?.moneda ?? "ARS"} className={campo}>
+          <select name="moneda" defaultValue={mov?.moneda ?? precarga?.moneda ?? "ARS"} className={campo}>
             <option>ARS</option><option>USD</option>
           </select>
         </label>

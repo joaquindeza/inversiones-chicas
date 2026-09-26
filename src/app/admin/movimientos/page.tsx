@@ -14,6 +14,10 @@ export default async function Movimientos({ searchParams }: PageProps<"/admin/mo
     hasta: uno("hasta"),
     ticker: uno("ticker"),
   };
+  const nuevo = uno("nuevo");
+  const precarga = nuevo === "Aporte" || nuevo === "Retiro"
+    ? { tipo: nuevo, hermana_id: Number(uno("h")) || null, monto: Number(uno("monto")) || null, moneda: uno("moneda") === "USD" ? "USD" : "ARS" }
+    : null;
   const [movs, hs, tks, plats] = await Promise.all([movimientos(filtro), hermanas(), tickers(), plataformas()]);
 
   const campo = "rounded-md border border-borde bg-white px-2 py-1.5 text-sm";
@@ -50,6 +54,7 @@ export default async function Movimientos({ searchParams }: PageProps<"/admin/mo
         hermanas={hs.map((h) => ({ id: h.id, nombre: h.nombre, color: h.color }))}
         tickers={tks.map((t) => ({ ticker: t.ticker!, nombre: t.nombre ?? "" }))}
         plataformas={plats}
+        precarga={precarga}
       />
     </>
   );

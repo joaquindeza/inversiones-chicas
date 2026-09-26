@@ -1478,7 +1478,13 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      configurar_sync: { Args: { p_frecuencia: string }; Returns: undefined }
+      guardar_credencial_iol: {
+        Args: { p_clave: string; p_hermana: number; p_usuario: string }
+        Returns: undefined
+      }
+      leer_credencial_iol: { Args: { p_hermana: number }; Returns: Json }
+      verificar_token_cron: { Args: { p_token: string }; Returns: boolean }
     }
     Enums: {
       aportante: "Joaquín" | "Propio" | "Regalo"

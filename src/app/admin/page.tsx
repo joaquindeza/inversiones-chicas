@@ -2,15 +2,16 @@ import Link from "next/link";
 import { Evolucion } from "@/components/graficos";
 import { Monto, Pct } from "@/components/preferencias";
 import { Seccion, Tarjeta, Titulo } from "@/components/ui";
+import { ItemAlerta, PanelSync } from "@/components/sync";
 import {
-  alertasPendientes, categoriasTodas, reglas, resumenes, seguimiento, sumarResumenes, ultimoSync,
+  alertasPendientes, categoriasTodas, frecuenciaSync, reglas, resumenes, seguimiento, sumarResumenes, ultimoSync,
 } from "@/lib/datos";
 import { serieEvolucion } from "@/lib/evolucion";
-import { fmtFechaHora, fmtPct } from "@/lib/formato";
+import { fmtPct } from "@/lib/formato";
 
 export default async function InicioAdmin() {
-  const [rs, cats, seg, sync, alertas, rgl] = await Promise.all([
-    resumenes(), categoriasTodas(), seguimiento(), ultimoSync(), alertasPendientes(), reglas(),
+  const [rs, cats, seg, sync, alertas, rgl, frecuencia] = await Promise.all([
+    resumenes(), categoriasTodas(), seguimiento(), ultimoSync(), alertasPendientes(), reglas(), frecuenciaSync(),
   ]);
   const t = sumarResumenes(rs);
   const umbral = Number(rgl.find((r) => r.tipo === "desvio_categoria" && r.activa)?.umbral ?? 0.05);
@@ -53,16 +54,8 @@ export default async function InicioAdmin() {
 
         <div className="flex flex-col gap-4">
           <Seccion titulo="Sincronización con IOL">
-            {sync ? (
-              <p className="text-sm">
-                Última: <b>{fmtFechaHora(sync.inicio)}</b> ({sync.disparo}) ·{" "}
-                <span className={sync.estado === "error" ? "text-baja font-bold" : sync.estado === "ok" ? "text-sube" : "text-aviso"}>
-                  {sync.estado}
-                </span>
-                {sync.error && <span className="block text-baja mt-1">{sync.error}</span>}
-              </p>
-            ) : <p className="text-sm text-tenue">Nunca se sincronizó.</p>}
-            <p className="text-xs text-tenue mt-2">El sync automático y el botón “Sincronizar ahora” llegan en la etapa 4.</p>
+            <PanelSync ultimo={sync} frecuencia={frecuencia} />
+            <Link href="/admin/config" className="text-xs text-marino hover:underline mt-2 inline-block">Configurar →</Link>
           </Seccion>
 
           <Seccion titulo="Para revisar">
@@ -70,7 +63,7 @@ export default async function InicioAdmin() {
               <p className="text-sm text-tenue">Nada pendiente.</p>
             ) : (
               <ul className="text-sm space-y-2">
-                {alertas.map((a) => <li key={a.id}>⚠ {a.mensaje}</li>)}
+                {alertas.map((a) => <ItemAlerta key={a.id} a={a} />)}
                 {desvios.map((d) => (
                   <li key={`${d.hermana_id}-${d.categoria}`}>
                     ⚖ <b>{nombre.get(d.hermana_id)}</b>: {d.categoria} está en {fmtPct(Number(d.pct))} (objetivo{" "}
