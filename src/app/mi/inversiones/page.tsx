@@ -4,6 +4,8 @@ import { Monto, Pct } from "@/components/preferencias";
 import { categoriasHermana, posiciones, resumenes, tesis } from "@/lib/datos";
 import { CATEGORIAS_CRIOLLO } from "@/lib/explicaciones";
 import { hermanaDeLaVista } from "@/lib/vista";
+import { esVisible, porcionesCategorias } from "@/lib/porciones";
+import { Logo } from "@/components/logo";
 
 export const metadata = { title: "En qué estoy invertida" };
 
@@ -12,7 +14,7 @@ export default async function MisInversiones() {
   const [rs, pos, cats, ts] = await Promise.all([resumenes(), posiciones(id), categoriasHermana(id), tesis(id)]);
   const r = rs.find((x) => x.hermana_id === id);
   const total = Number(r?.total_usd ?? 0);
-  const activas = pos.filter((p) => p.activa);
+  const activas = pos.filter(esVisible);
   const tesisDe = new Map(ts.map((t) => [t.ticker, t]));
   const grupos = cats.filter((c) => Number(c.valor_usd) > 0.0001);
 
@@ -23,7 +25,7 @@ export default async function MisInversiones() {
         <p className="text-sm text-tenue mb-4">
           Repartida en {activas.length} inversiones distintas. <Explicame termino="diversificar">¿Por qué repartirla?</Explicame>
         </p>
-        <Dona porciones={grupos.map((c) => ({ nombre: c.categoria!, color: c.color!, usd: Number(c.valor_usd), pct: c.pct == null ? null : Number(c.pct) }))} alto={180} />
+        <Dona porciones={porcionesCategorias(grupos, pos, Number(r?.efectivo_usd ?? 0))} alto={180} />
       </section>
 
       {grupos.map((c) => {
@@ -48,8 +50,9 @@ export default async function MisInversiones() {
                   <li key={p.ticker} className="py-2">
                     <details className="group">
                       <summary className="list-none cursor-pointer flex items-center justify-between gap-2">
-                        <span className="min-w-0">
-                          <b>{p.ticker}</b> <span className="text-sm text-tenue truncate">{p.nombre}</span>
+                        <span className="min-w-0 inline-flex items-center gap-2">
+                          <Logo ticker={p.ticker!} color={p.categoria_color} tam={28} />
+                          <span className="min-w-0"><b>{p.ticker}</b> <span className="text-sm text-tenue truncate">{p.nombre}</span></span>
                         </span>
                         <span className="text-right text-sm shrink-0">
                           <Monto usd={Number(p.valor_usd)} /><br />

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { BarraAportes } from "@/components/graficos";
 import { BotonCompartir } from "@/components/compartir";
 import { Explicame } from "@/components/explicame";
 import { Monto, Pct } from "@/components/preferencias";
@@ -55,17 +54,6 @@ export default async function MiCartera() {
         </section>
       )}
 
-      <section className="rounded-2xl bg-white shadow-sm p-5">
-        <h2 className="font-bold mb-1">¿Cuánto es tuyo?</h2>
-        <p className="text-sm text-tenue mb-3">
-          Hoy la mayor parte la puso Joaquín. Cuando empieces a trabajar y sumes lo tuyo, esta barra se va a ir llenando con tu color.
-        </p>
-        <BarraAportes partes={[
-          { nombre: "Joaquín", usd: Number(r.aportes_joaquin_usd), color: "#0B2545" },
-          { nombre: "Vos", usd: Number(r.aportes_propio_usd), color: r.color ?? "#999" },
-          { nombre: "Regalos", usd: Number(r.aportes_regalo_usd), color: "#9CA3AF" },
-        ]} />
-      </section>
 
       <section className="grid grid-cols-2 gap-3 text-sm">
         <Link href="/mi/inversiones" className="rounded-2xl bg-white shadow-sm p-4 font-semibold">En qué estás invertida →</Link>

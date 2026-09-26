@@ -7,6 +7,8 @@ import { BotonTesis } from "./tesis";
 import { Explicame } from "@/components/explicame";
 import { serieEvolucion } from "@/lib/evolucion";
 import { fmtCant, fmtPct } from "@/lib/formato";
+import { esVisible, porcionesCategorias } from "@/lib/porciones";
+import { Logo } from "@/components/logo";
 
 const n = (v: number | null | undefined) => (v == null ? null : Number(v));
 
@@ -18,7 +20,7 @@ export default async function CarteraHermana({ params }: PageProps<"/admin/carte
   if (!r) notFound();
   const color = r.color ?? "#0B2545";
   const total = Number(r.total_usd);
-  const activas = pos.filter((p) => p.activa);
+  const activas = pos.filter(esVisible);
 
   return (
     <>
@@ -28,14 +30,11 @@ export default async function CarteraHermana({ params }: PageProps<"/admin/carte
         <a href={`/reporte/${id}`} target="_blank" className="text-marino underline">Reporte del mes (imagen)</a>
       </>}>Cartera de {r.nombre}</Titulo>
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <Tarjeta titulo="Vale hoy"><Monto usd={total} /></Tarjeta>
         <Tarjeta titulo={<Explicame termino="aportado">Aportado</Explicame>}><Monto usd={n(r.aportado_neto_usd)} ars={n(r.aportado_neto_ars)} /></Tarjeta>
         <Tarjeta titulo={<Explicame termino="resultado">Resultado</Explicame>}><Monto usd={n(r.resultado_usd)} signo /></Tarjeta>
         <Tarjeta titulo={<Explicame termino="rendimiento">Rendimiento</Explicame>} sub="sobre lo aportado"><Pct valor={n(r.rendimiento)} signo /></Tarjeta>
-        <Tarjeta titulo="Efectivo" sub={<Pct valor={total ? Number(r.efectivo_usd) / total : null} />}>
-          <Monto usd={n(r.efectivo_usd)} />
-        </Tarjeta>
       </div>
 
       <Seccion titulo="Cuánto puso cada uno" className="mb-4">
@@ -48,7 +47,7 @@ export default async function CarteraHermana({ params }: PageProps<"/admin/carte
 
       <div className="grid lg:grid-cols-2 gap-4 mb-4">
         <Seccion titulo="Por categoría">
-          <Dona porciones={cats.map((c) => ({ nombre: c.categoria!, color: c.color!, usd: Number(c.valor_usd), pct: n(c.pct) }))} />
+          <Dona porciones={porcionesCategorias(cats, pos, Number(r.efectivo_usd))} />
           <table className="w-full text-sm mt-4">
             <thead><tr><th className={th}>Categoría</th><th className={`${th} text-right`}>Real</th><th className={`${th} text-right`}>Objetivo</th><th className={`${th} text-right`}>Desvío</th></tr></thead>
             <tbody>
@@ -72,7 +71,7 @@ export default async function CarteraHermana({ params }: PageProps<"/admin/carte
                 return (
                   <li key={p.ticker} className="text-sm">
                     <div className="flex justify-between gap-2">
-                      <span><b>{p.ticker}</b> <span className="text-tenue">{p.nombre}</span></span>
+                      <span className="inline-flex items-center gap-2 min-w-0"><Logo ticker={p.ticker!} color={p.categoria_color} tam={20} /><b>{p.ticker}</b> <span className="text-tenue truncate">{p.nombre}</span></span>
                       <span className="shrink-0"><Pct valor={pct} /> · <Monto usd={n(p.valor_usd)} className="text-tenue" /></span>
                     </div>
                     <div className="h-2 mt-1 rounded-full bg-fondo overflow-hidden">
@@ -87,7 +86,7 @@ export default async function CarteraHermana({ params }: PageProps<"/admin/carte
       </div>
 
       <Seccion titulo="Posiciones" className="mb-4">
-        {pos.length === 0 ? <Vacio>Sin posiciones.</Vacio> : (
+        {activas.length === 0 ? <Vacio>Sin posiciones.</Vacio> : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -98,9 +97,9 @@ export default async function CarteraHermana({ params }: PageProps<"/admin/carte
                 </tr>
               </thead>
               <tbody>
-                {pos.map((p) => (
-                  <tr key={p.ticker} className={p.activa ? "" : "text-tenue"}>
-                    <td className={`${td} font-bold`}>{p.ticker}</td>
+                {activas.map((p) => (
+                  <tr key={p.ticker}>
+                    <td className={`${td} font-bold`}><span className="inline-flex items-center gap-2"><Logo ticker={p.ticker!} color={p.categoria_color} />{p.ticker}</span></td>
                     <td className={`${td} max-w-56 truncate`}>{p.nombre}</td>
                     <td className={td}><span className="inline-block size-2.5 rounded-sm mr-1.5" style={{ background: p.categoria_color! }} />{p.categoria}</td>
                     <td className={`${td} text-right num`}>{fmtCant(n(p.cantidad))}</td>
@@ -113,12 +112,12 @@ export default async function CarteraHermana({ params }: PageProps<"/admin/carte
                     <td className={`${td} text-right`}><Pct valor={total ? Number(p.valor_usd) / total : null} /></td>
                     <td className={`${td} text-right`}><Monto usd={n(p.resultado_usd)} signo /></td>
                     <td className={`${td} text-right`}><Pct valor={n(p.resultado_pct)} signo /></td>
-                    <td className={td}>{p.activa && <BotonTesis hermanaId={id} ticker={p.ticker!} tesis={tesisDe.get(p.ticker!) ?? null} />}</td>
+                    <td className={td}>{<BotonTesis hermanaId={id} ticker={p.ticker!} tesis={tesisDe.get(p.ticker!) ?? null} />}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
-            <p className="text-xs text-tenue mt-2">En gris, posiciones cerradas (cantidad 0). * sin precio actual: se valoriza al PPC.</p>
+            <p className="text-xs text-tenue mt-2">* Sin precio actual: se valoriza al PPC. Las posiciones cerradas están en <a href="/admin/historial" className="underline">Historial</a>.</p>
           </div>
         )}
       </Seccion>

@@ -2,6 +2,7 @@
 
 import { useActionState, useMemo, useState } from "react";
 import { Monto } from "@/components/preferencias";
+import { Logo } from "@/components/logo";
 import { Seccion, td, th } from "@/components/ui";
 import type { TickerV } from "@/lib/datos";
 import { fmtFechaHora } from "@/lib/formato";
@@ -40,7 +41,7 @@ export function CatalogoTickers({ tickers, categorias, plataformas }: { tickers:
                 </td></tr>
               ) : (
                 <tr key={t.ticker} className="hover:bg-fondo">
-                  <td className={`${td} font-bold`}>{t.ticker}</td>
+                  <td className={`${td} font-bold`}><span className="inline-flex items-center gap-2"><Logo ticker={t.ticker!} color={t.categoria_color} tam={20} />{t.ticker}</span></td>
                   <td className={`${td} max-w-72 truncate`}>{t.nombre}</td>
                   <td className={td}>{t.categoria && <><span className="inline-block size-2.5 rounded-sm mr-1.5" style={{ background: t.categoria_color! }} />{t.categoria}</>}</td>
                   <td className={td}>{t.plataforma}</td>

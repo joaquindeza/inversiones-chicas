@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "crear-usuarios": "node --env-file=.env.local scripts/crear-usuarios.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "logos": "node --env-file=.env.local scripts/descargar-logos.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",

@@ -3,47 +3,107 @@
 import {
   CartesianGrid, Line, LineChart, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
+import { useEffect, useRef, useState } from "react";
 import { fmtDinero, fmtMes, fmtPct } from "@/lib/formato";
+import { Logo } from "./logo";
 import { Monto, Pct, usePreferencias } from "./preferencias";
 
 // Gráficos con la guía de dataviz: trazos finos, leyenda siempre (la identidad nunca va solo por
 // color), tooltip al pasar el mouse, un solo eje. Los montos respetan el ojo y USD/ARS.
 
-export type Porcion = { nombre: string; color: string; usd: number; pct: number | null };
+export type Sub = { nombre: string; usd: number; etiqueta?: string | null; logo?: boolean };
+export type Porcion = { nombre: string; color: string; usd: number; pct: number | null; hijos?: Sub[] };
+type Fila = { nombre: string; color: string; usd: number; pct: number | null; etiqueta?: string | null; logo?: boolean; abre?: boolean };
 
-/** Dona + tabla-leyenda con nombre, % y monto. Las porciones van en el orden recibido (fijo). */
+/** Tonos de un color (el más grande, el más oscuro) para las porciones dentro de una categoría. */
+function tonos(hex: string, n: number): string[] {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+  return Array.from({ length: n }, (_, i) => {
+    const t = n <= 1 ? 0 : (i / (n - 1)) * 0.62; // hasta 62% hacia el blanco
+    const c = [r, g, b].map((v) => Math.round(v + (255 - v) * t).toString(16).padStart(2, "0"));
+    return `#${c.join("")}`;
+  });
+}
+
+/**
+ * Dona + tabla-leyenda con nombre, % y monto. Tocar una categoría (en la torta o en la tabla) abre
+ * su propia torta, donde el 100% es esa categoría; la flecha o tocar afuera vuelve a la cartera entera.
+ */
 export function Dona({ porciones, alto = 200 }: { porciones: Porcion[]; alto?: number }) {
-  const datos = porciones.filter((p) => p.usd > 0.0001).map((p) => ({ ...p, fill: p.color }));
-  if (!datos.length) return <p className="text-sm text-tenue py-6 text-center">Sin datos todavía.</p>;
+  const [abierta, setAbierta] = useState<string | null>(null);
+  const caja = useRef<HTMLDivElement>(null);
+  const tocoPorcion = useRef(false);
+
+  // tocar fuera del gráfico lo vuelve a la cartera entera
+  useEffect(() => {
+    if (!abierta) return;
+    const fuera = (e: PointerEvent) => { if (caja.current && !caja.current.contains(e.target as Node)) setAbierta(null); };
+    document.addEventListener("pointerdown", fuera);
+    return () => document.removeEventListener("pointerdown", fuera);
+  }, [abierta]);
+
+  const visibles = porciones.filter((p) => p.usd > 0.0001);
+  const cat = abierta ? visibles.find((p) => p.nombre === abierta) : null;
+  let filas: Fila[];
+  if (cat) {
+    const hijos = [...(cat.hijos ?? [])].filter((h) => h.usd > 0.0001).sort((a, b) => b.usd - a.usd);
+    const colores = tonos(cat.color, hijos.length);
+    filas = hijos.map((h, i) => ({ ...h, color: colores[i], pct: cat.usd ? h.usd / cat.usd : null }));
+  } else {
+    filas = visibles.map((p) => ({ ...p, abre: (p.hijos?.filter((h) => h.usd > 0.0001).length ?? 0) > 0 }));
+  }
+  if (!visibles.length) return <p className="text-sm text-tenue py-6 text-center">Sin datos todavía.</p>;
+
+  const abrir = (f: Fila) => { if (!cat && f.abre) setAbierta(f.nombre); };
+  const datos = filas.map((f) => ({ ...f, fill: f.color }));
+
   return (
-    <div className="flex flex-col sm:flex-row items-center gap-4">
-      <div style={{ width: alto, height: alto }} className="shrink-0">
-        <ResponsiveContainer>
-          <PieChart>
-            <Pie
-              data={datos} dataKey="usd" nameKey="nombre" innerRadius="58%" outerRadius="100%"
-              paddingAngle={datos.length > 1 ? 1.5 : 0} stroke="#fff" strokeWidth={2} isAnimationActive={false}
-            />
-            <Tooltip content={<TooltipPorcion />} />
-          </PieChart>
-        </ResponsiveContainer>
+    <div ref={caja}>
+      {cat && (
+        <button onClick={() => setAbierta(null)} className="mb-2 inline-flex items-center gap-1.5 text-sm font-semibold text-marino hover:underline">
+          <span aria-hidden>←</span> Toda la cartera
+          <span className="text-tenue font-normal">· {cat.nombre} = 100% (<Pct valor={cat.pct} /> de la cartera)</span>
+        </button>
+      )}
+      <div className="flex flex-col sm:flex-row items-center gap-4">
+        <div style={{ width: alto, height: alto }} className="shrink-0 [&_*:focus]:outline-none"
+          onClick={() => { if (!tocoPorcion.current && cat) setAbierta(null); tocoPorcion.current = false; }}>
+          <ResponsiveContainer>
+            <PieChart>
+              <Pie
+                data={datos} dataKey="usd" nameKey="nombre" innerRadius="58%" outerRadius="100%"
+                paddingAngle={datos.length > 1 ? 1.5 : 0} stroke="#fff" strokeWidth={2} isAnimationActive={false}
+                onClick={(_, i) => { tocoPorcion.current = true; abrir(filas[i]); }}
+                style={{ cursor: cat ? "default" : "pointer" }}
+              />
+              <Tooltip content={<TooltipPorcion />} />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+        <table className="text-sm w-full">
+          <tbody>
+            {filas.map((f) => (
+              <tr key={f.nombre} onClick={() => abrir(f)} className={f.abre ? "cursor-pointer hover:bg-fondo" : ""}>
+                <td className="py-1 pr-2">
+                  <span className="inline-flex items-center gap-2">
+                    {f.logo ? <Logo ticker={f.nombre} color={f.color} tam={20} /> : <span className="inline-block size-3 rounded-sm shrink-0" style={{ background: f.color }} />}
+                    <span>{f.nombre}{f.etiqueta && <span className="text-tenue"> {f.etiqueta}</span>}</span>
+                    {f.abre && <span className="text-tenue" aria-hidden>›</span>}
+                  </span>
+                </td>
+                <td className="py-1 px-2 text-right whitespace-nowrap"><Pct valor={f.pct} /></td>
+                <td className="py-1 pl-2 text-right text-tenue whitespace-nowrap"><Monto usd={f.usd} /></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-      <table className="text-sm w-full">
-        <tbody>
-          {datos.map((p) => (
-            <tr key={p.nombre}>
-              <td className="py-1 pr-2"><span className="inline-block size-3 rounded-sm align-middle mr-2" style={{ background: p.color }} />{p.nombre}</td>
-              <td className="py-1 px-2 text-right"><Pct valor={p.pct} /></td>
-              <td className="py-1 pl-2 text-right text-tenue"><Monto usd={p.usd} /></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {!cat && filas.some((f) => f.abre) && <p className="text-xs text-tenue mt-2">Tocá una categoría para ver qué tiene adentro.</p>}
     </div>
   );
 }
 
-function TooltipPorcion({ active, payload }: { active?: boolean; payload?: { payload: Porcion }[] }) {
+function TooltipPorcion({ active, payload }: { active?: boolean; payload?: { payload: Fila }[] }) {
   if (!active || !payload?.length) return null;
   const p = payload[0].payload;
   return (

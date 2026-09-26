@@ -13,8 +13,8 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
     { href: "/admin", texto: "Inicio" },
     { href: "/admin/movimientos", texto: "Movimientos" },
     ...hs.map((h) => ({ href: `/admin/cartera/${h.id}`, texto: h.nombre, color: h.color })),
-    { href: "/admin/tickers", texto: "Tickers" },
-    { href: "/admin/avisos", texto: "Avisos" },
+    { href: "/admin/planificacion", texto: "Planificación" },
+    { href: "/admin/historial", texto: "Historial" },
     { href: "/admin/config", texto: "Configuración" },
   ];
 

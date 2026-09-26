@@ -91,7 +91,7 @@ export async function avisosCalculados(): Promise<Aviso[]> {
   if (rv) {
     const limite = new Date(Date.parse(hoy) + Number(rv.umbral ?? 7) * 86_400_000).toISOString().slice(0, 10);
     for (const e of (eventos ?? []).filter((x) => x.fecha <= limite)) {
-      avisos.push({ tipo: "vencimiento", icono: "📅", href: "/admin/avisos", texto: `${fmtFecha(e.fecha)}: ${e.ticker ? `${e.ticker} — ` : ""}${e.descripcion}` });
+      avisos.push({ tipo: "vencimiento", icono: "📅", texto: `${fmtFecha(e.fecha)}: ${e.ticker ? `${e.ticker} — ` : ""}${e.descripcion}` });
     }
   }
 
@@ -102,7 +102,7 @@ export async function avisosCalculados(): Promise<Aviso[]> {
     );
     const esteMes = meses[meses.length - 1];
     if (esteMes && (esteMes.estado === "falta" || esteMes.estado === "parcial")) {
-      avisos.push({ tipo: "aporte", icono: "🔔", href: "/admin/avisos",
+      avisos.push({ tipo: "aporte", icono: "🔔",
         texto: `Aporte de ${nombre.get(p.hermana_id)} del día ${p.dia_mes}: ${p.moneda === "USD" ? "US$" : "$"} ${Number(p.monto).toLocaleString("es-AR")} ${esteMes.estado === "parcial" ? "(cargado en parte)" : "todavía sin registrar"}.` });
     }
   }

@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useState, useTransition } from "react";
 import { Monto } from "@/components/preferencias";
+import { Logo } from "@/components/logo";
 import { Seccion, Vacio, td, th } from "@/components/ui";
 import type { MovimientoV, TipoMovimiento } from "@/lib/datos";
 import { fmtCant, fmtFecha, fmtTC } from "@/lib/formato";
@@ -73,7 +74,7 @@ export function TablaMovimientos({ movimientos, hermanas, tickers, plataformas, 
                       <td className={`${td} num`}>{fmtFecha(m.fecha)}</td>
                       <td className={td}><span className="font-semibold" style={{ color: h?.color }}>{h?.nombre}</span></td>
                       <td className={td}>{m.tipo}</td>
-                      <td className={`${td} font-bold`}>{m.ticker}</td>
+                      <td className={`${td} font-bold`}>{m.ticker && <span className="inline-flex items-center gap-2"><Logo ticker={m.ticker} tam={20} />{m.ticker}</span>}</td>
                       <td className={`${td} text-right num`}>{m.cantidad != null ? fmtCant(Number(m.cantidad)) : ""}</td>
                       <td className={`${td} text-right num`}>{m.moneda === "USD" ? "US$" : "$"} {Number(m.monto).toLocaleString("es-AR")}</td>
                       <td className={`${td} text-right num text-tenue`} title={m.tc_manual ? "TC manual" : "MEP del día"}>

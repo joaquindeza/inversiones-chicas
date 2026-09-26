@@ -28,3 +28,14 @@ Marcar `[x]` al terminar. Si se corta la sesión, retomar desde la primera `[ ]`
 Todo lo de arriba quedó implementado. Verificado: proyección = Excel (dif. 1e-9), comparación y plazo fijo
 con números conocidos, sync con índices y precios diarios (ok en 8,5 s), build de producción limpio.
 Lo que necesita sesión (pantallas de ellas, reporte, avisos) lo revisa Joaquín en el navegador.
+
+## Correcciones de Joaquín (26/09/2026, tarde)
+- [ ] Login lento: funciones de Vercel en São Paulo (gru1, junto a Supabase) + consultas del login en paralelo.
+- [ ] Vista de ellas: sacar "¿Cuánto es tuyo?" (queda en la vista de Joaquín).
+- [ ] Sacar el cuadro "Efectivo" de la cartera; sacar Tickers y Avisos del menú.
+- [ ] Ocultar posiciones con cantidad 0 o valor < US$ 1 en todas las tablas.
+- [ ] Logos: carpeta public/logos con PNG de cada empresa; logo circular a la izquierda del ticker en todas las tablas.
+- [ ] Tortas: tocar una categoría abre la torta de esa categoría (100% = la categoría); flecha para volver o tocar afuera.
+- [ ] Historial: posiciones que tuvimos, cuándo se compró/vendió, resultado y rendimiento.
+- [ ] Planificación (como Excel + finjoa): mes ← →, capital, niveles Bajo/Medio/Alto con tickers y %, comprado vs plan,
+      guardar / copiar a las 3; Tenencias estimadas: TC, ventas planificadas, proyectado vs actual, torta y tabla por categoría.

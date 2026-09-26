@@ -1,6 +1,7 @@
 "use server";
 
 import { headers } from "next/headers";
+import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { clienteAdmin } from "@/lib/supabase/admin";
 import { crearCliente } from "@/lib/supabase/server";
@@ -28,18 +29,19 @@ export async function ingresar(_prev: EstadoLogin, form: FormData): Promise<Esta
   const ip = (h.get("x-forwarded-for") ?? "").split(",")[0].trim() || "local";
   const desde = new Date(Date.now() - VENTANA_MIN * 60_000).toISOString();
 
+  // las tres consultas previas van en paralelo (antes eran una detrás de la otra)
   let q = admin.from("intentos_login").select("id", { count: "exact", head: true }).eq("ok", false).gte("creado_el", desde);
   q = esAdmin ? q.eq("es_admin", true) : q.eq("hermana_id", hermanaId!);
-  const { count: fallosPerfil } = await q;
-  const { count: fallosIp } = await admin.from("intentos_login").select("id", { count: "exact", head: true })
-    .eq("ok", false).eq("ip", ip).gte("creado_el", desde);
+  let pq = admin.from("perfiles").select("user_id");
+  pq = esAdmin ? pq.eq("rol", "admin") : pq.eq("hermana_id", hermanaId!);
+  const [{ count: fallosPerfil }, { count: fallosIp }, { data: p }] = await Promise.all([
+    q,
+    admin.from("intentos_login").select("id", { count: "exact", head: true }).eq("ok", false).eq("ip", ip).gte("creado_el", desde),
+    pq.limit(1).maybeSingle(),
+  ]);
   if ((fallosPerfil ?? 0) >= MAX_FALLOS_PERFIL || (fallosIp ?? 0) >= MAX_FALLOS_IP) {
     return { error: `Demasiados intentos. Probá de nuevo en ${VENTANA_MIN} minutos.` };
   }
-
-  let pq = admin.from("perfiles").select("user_id");
-  pq = esAdmin ? pq.eq("rol", "admin") : pq.eq("hermana_id", hermanaId!);
-  const { data: p } = await pq.limit(1).maybeSingle();
   const email = p ? (await admin.auth.admin.getUserById(p.user_id)).data.user?.email : undefined;
 
   const supabase = await crearCliente();
@@ -47,7 +49,10 @@ export async function ingresar(_prev: EstadoLogin, form: FormData): Promise<Esta
     ? await supabase.auth.signInWithPassword({ email, password: clave })
     : { error: new Error("sin usuario") };
 
-  await admin.from("intentos_login").insert({ hermana_id: hermanaId, es_admin: esAdmin, ok: !error, ip });
+  // el registro del intento no demora la respuesta: se guarda después de contestar
+  after(async () => {
+    await admin.from("intentos_login").insert({ hermana_id: hermanaId, es_admin: esAdmin, ok: !error, ip });
+  });
   if (error) return { error: esAdmin ? "Clave incorrecta." : "PIN incorrecto." };
 
   redirect(esAdmin ? "/admin" : "/mi");

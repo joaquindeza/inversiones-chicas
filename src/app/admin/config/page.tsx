@@ -10,7 +10,7 @@ export default async function Configuracion() {
   const cred = new Map(creds.map((c) => [c.hermana_id, c]));
   return (
     <>
-      <Titulo sub="Sincronización con IOL, objetivos de cartera y accesos.">Configuración</Titulo>
+      <Titulo sub={<>Sincronización con IOL, objetivos de cartera y accesos. · <a href="/admin/tickers" className="text-marino underline">Catálogo de tickers</a></>}>Configuración</Titulo>
       <div className="grid lg:grid-cols-2 gap-4">
         <Seccion titulo="Sincronización con IOL" className="lg:col-span-2">
           <div className="grid lg:grid-cols-2 gap-6">
