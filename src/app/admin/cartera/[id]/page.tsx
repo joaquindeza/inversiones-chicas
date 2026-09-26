@@ -2,7 +2,9 @@ import { notFound } from "next/navigation";
 import { BarraAportes, Dona, Evolucion } from "@/components/graficos";
 import { Monto, Pct } from "@/components/preferencias";
 import { Seccion, Tarjeta, Titulo, Vacio, td, th } from "@/components/ui";
-import { categoriasHermana, posiciones, resumenes, seguimiento } from "@/lib/datos";
+import { categoriasHermana, posiciones, resumenes, seguimiento, tesis } from "@/lib/datos";
+import { BotonTesis } from "./tesis";
+import { Explicame } from "@/components/explicame";
 import { serieEvolucion } from "@/lib/evolucion";
 import { fmtCant, fmtPct } from "@/lib/formato";
 
@@ -10,7 +12,8 @@ const n = (v: number | null | undefined) => (v == null ? null : Number(v));
 
 export default async function CarteraHermana({ params }: PageProps<"/admin/cartera/[id]">) {
   const id = Number((await params).id);
-  const [rs, pos, cats, seg] = await Promise.all([resumenes(), posiciones(id), categoriasHermana(id), seguimiento(id)]);
+  const [rs, pos, cats, seg, ts] = await Promise.all([resumenes(), posiciones(id), categoriasHermana(id), seguimiento(id), tesis(id)]);
+  const tesisDe = new Map(ts.map((t) => [t.ticker, t]));
   const r = rs.find((x) => x.hermana_id === id);
   if (!r) notFound();
   const color = r.color ?? "#0B2545";
@@ -19,13 +22,17 @@ export default async function CarteraHermana({ params }: PageProps<"/admin/carte
 
   return (
     <>
-      <Titulo color={color} sub="Posiciones, composición y evolución. Todo en dólares MEP.">Cartera de {r.nombre}</Titulo>
+      <Titulo color={color} sub={<>
+        Posiciones, composición y evolución. Todo en dólares MEP. ·{" "}
+        <a href={`/mi/ver/${id}`} className="text-marino underline">Ver como la ve {r.nombre}</a> ·{" "}
+        <a href={`/reporte/${id}`} target="_blank" className="text-marino underline">Reporte del mes (imagen)</a>
+      </>}>Cartera de {r.nombre}</Titulo>
 
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
         <Tarjeta titulo="Vale hoy"><Monto usd={total} /></Tarjeta>
-        <Tarjeta titulo="Aportado"><Monto usd={n(r.aportado_neto_usd)} ars={n(r.aportado_neto_ars)} /></Tarjeta>
-        <Tarjeta titulo="Resultado"><Monto usd={n(r.resultado_usd)} signo /></Tarjeta>
-        <Tarjeta titulo="Rendimiento" sub="sobre lo aportado"><Pct valor={n(r.rendimiento)} signo /></Tarjeta>
+        <Tarjeta titulo={<Explicame termino="aportado">Aportado</Explicame>}><Monto usd={n(r.aportado_neto_usd)} ars={n(r.aportado_neto_ars)} /></Tarjeta>
+        <Tarjeta titulo={<Explicame termino="resultado">Resultado</Explicame>}><Monto usd={n(r.resultado_usd)} signo /></Tarjeta>
+        <Tarjeta titulo={<Explicame termino="rendimiento">Rendimiento</Explicame>} sub="sobre lo aportado"><Pct valor={n(r.rendimiento)} signo /></Tarjeta>
         <Tarjeta titulo="Efectivo" sub={<Pct valor={total ? Number(r.efectivo_usd) / total : null} />}>
           <Monto usd={n(r.efectivo_usd)} />
         </Tarjeta>
@@ -85,8 +92,8 @@ export default async function CarteraHermana({ params }: PageProps<"/admin/carte
             <table className="w-full text-sm">
               <thead>
                 <tr>
-                  {["Ticker", "Nombre", "Categoría", "Cantidad", "PPC", "Precio", "Valor", "% cartera", "Ganancia", "%"].map((h, i) => (
-                    <th key={h} className={`${th} ${i >= 3 ? "text-right" : ""}`}>{h}</th>
+                  {["Ticker", "Nombre", "Categoría", "Cantidad", <Explicame key="ppc" termino="PPC">PPC</Explicame>, "Precio", "Valor", "% cartera", "Ganancia", "%", "Tesis"].map((h, i) => (
+                    <th key={i} className={`${th} ${i >= 3 && i < 10 ? "text-right" : ""}`}>{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -106,6 +113,7 @@ export default async function CarteraHermana({ params }: PageProps<"/admin/carte
                     <td className={`${td} text-right`}><Pct valor={total ? Number(p.valor_usd) / total : null} /></td>
                     <td className={`${td} text-right`}><Monto usd={n(p.resultado_usd)} signo /></td>
                     <td className={`${td} text-right`}><Pct valor={n(p.resultado_pct)} signo /></td>
+                    <td className={td}>{p.activa && <BotonTesis hermanaId={id} ticker={p.ticker!} tesis={tesisDe.get(p.ticker!) ?? null} />}</td>
                   </tr>
                 ))}
               </tbody>

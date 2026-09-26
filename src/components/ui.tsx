@@ -10,7 +10,7 @@ export function Titulo({ children, sub, color }: { children: React.ReactNode; su
 }
 
 export function Tarjeta({ titulo, children, sub, className = "" }: {
-  titulo: string; children: React.ReactNode; sub?: React.ReactNode; className?: string;
+  titulo: React.ReactNode; children: React.ReactNode; sub?: React.ReactNode; className?: string;
 }) {
   return (
     <div className={`rounded-xl bg-white border border-borde px-4 py-3 ${className}`}>

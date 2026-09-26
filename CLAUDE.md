@@ -23,6 +23,16 @@ Proyecto `inversiones-chicas` (`ebgmziwyrkcvgbfgbgke`, sa-east-1). Se guarda sol
 viene de afuera; posiciones, resumen, categorías y seguimiento salen de vistas `v_*` (reemplazan la
 solapa `Calc` del Excel y replican sus fórmulas).
 
+## Estructura
+
+- `src/app/admin/*`: panel de Joaquín (inicio, movimientos, carteras, tickers, avisos, configuración).
+- `src/app/mi/*`: vista de cada hermana (celular/PWA): mi cartera, invertida en, creciendo, mi futuro, aprender.
+  El admin la previsualiza con `/mi/ver/[id]`.
+- `src/app/reporte/[id]`: imagen del mes para WhatsApp. `src/app/bienvenida`: alta inicial de usuarios (solo localhost).
+- `supabase/functions/sync-iol`: el sync (Edge Function). Se dispara con el botón o con pg_cron (`configurar_sync`).
+- Lógica pura verificable: `src/lib/proyeccion.ts` (= Excel), `comparacion.ts`, `hitos.ts`, `avisos.ts`.
+- Datos externos: MEP de Ámbito; S&P 500 y Merval de Yahoo (API no oficial); tasa de plazo fijo del BCRA (v4).
+
 ## Migración desde el Excel (hecha el 26/09/2026)
 
 `py migracion/migrar_excel.py` y `py migracion/verificar.py` generan SQL en `migracion/salida/`

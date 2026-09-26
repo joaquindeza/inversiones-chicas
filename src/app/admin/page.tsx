@@ -3,20 +3,15 @@ import { Evolucion } from "@/components/graficos";
 import { Monto, Pct } from "@/components/preferencias";
 import { Seccion, Tarjeta, Titulo } from "@/components/ui";
 import { ItemAlerta, PanelSync } from "@/components/sync";
-import {
-  alertasPendientes, categoriasTodas, frecuenciaSync, reglas, resumenes, seguimiento, sumarResumenes, ultimoSync,
-} from "@/lib/datos";
+import { avisosCalculados } from "@/lib/avisos";
+import { alertasPendientes, frecuenciaSync, resumenes, seguimiento, sumarResumenes, ultimoSync } from "@/lib/datos";
 import { serieEvolucion } from "@/lib/evolucion";
-import { fmtPct } from "@/lib/formato";
 
 export default async function InicioAdmin() {
-  const [rs, cats, seg, sync, alertas, rgl, frecuencia] = await Promise.all([
-    resumenes(), categoriasTodas(), seguimiento(), ultimoSync(), alertasPendientes(), reglas(), frecuenciaSync(),
+  const [rs, seg, sync, alertas, avisos, frecuencia] = await Promise.all([
+    resumenes(), seguimiento(), ultimoSync(), alertasPendientes(), avisosCalculados(), frecuenciaSync(),
   ]);
   const t = sumarResumenes(rs);
-  const umbral = Number(rgl.find((r) => r.tipo === "desvio_categoria" && r.activa)?.umbral ?? 0.05);
-  const desvios = cats.filter((c) => c.desvio != null && Math.abs(Number(c.desvio)) > umbral);
-  const nombre = new Map(rs.map((r) => [r.hermana_id, r.nombre]));
 
   return (
     <>
@@ -59,15 +54,14 @@ export default async function InicioAdmin() {
           </Seccion>
 
           <Seccion titulo="Para revisar">
-            {alertas.length === 0 && desvios.length === 0 ? (
+            {alertas.length === 0 && avisos.length === 0 ? (
               <p className="text-sm text-tenue">Nada pendiente.</p>
             ) : (
               <ul className="text-sm space-y-2">
                 {alertas.map((a) => <ItemAlerta key={a.id} a={a} />)}
-                {desvios.map((d) => (
-                  <li key={`${d.hermana_id}-${d.categoria}`}>
-                    ⚖ <b>{nombre.get(d.hermana_id)}</b>: {d.categoria} está en {fmtPct(Number(d.pct))} (objetivo{" "}
-                    {fmtPct(Number(d.objetivo_pct))}). Desvío {fmtPct(Number(d.desvio), true)}.
+                {avisos.map((a, i) => (
+                  <li key={i}>
+                    {a.icono} {a.href ? <Link href={a.href} className="hover:underline">{a.texto}</Link> : a.texto}
                   </li>
                 ))}
               </ul>

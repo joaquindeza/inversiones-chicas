@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BarraAportes } from "@/components/graficos";
+import { BotonCompartir } from "@/components/compartir";
 import { Explicame } from "@/components/explicame";
 import { Monto, Pct } from "@/components/preferencias";
 import { resumenes, seguimiento } from "@/lib/datos";
@@ -70,6 +71,9 @@ export default async function MiCartera() {
         <Link href="/mi/inversiones" className="rounded-2xl bg-white shadow-sm p-4 font-semibold">En qué estás invertida →</Link>
         <Link href="/mi/futuro" className="rounded-2xl bg-white shadow-sm p-4 font-semibold">Cuánto podrías tener →</Link>
       </section>
+
+      <BotonCompartir url={`/reporte/${id}`} nombre={`Mi cartera ${r.nombre}`}
+        className="w-full rounded-2xl text-white font-bold py-3 shadow-sm" style={{ background: "var(--color-h)" }} />
 
       <p className="text-xs text-tenue text-center">
         Todo se mide en <Explicame termino="MEP">dólares MEP</Explicame>.
