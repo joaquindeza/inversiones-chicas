@@ -1,0 +1,21 @@
+# datos personales generados por la migración
+migracion/salida/
+__pycache__/
+
+# Next.js / node
+node_modules/
+.next/
+out/
+.vercel/
+
+# secretos: nunca al repo
+.env
+.env.*
+!.env.example
+*.env
+
+# typescript / next
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store
+*.pem

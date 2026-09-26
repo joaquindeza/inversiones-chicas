@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+/* Identidad heredada del Excel: Lato, azul marino, un color por hermana. */
+@theme {
+  --font-sans: var(--font-lato), system-ui, sans-serif;
+
+  --color-marino: #0b2545;
+  --color-marino-claro: #13315c;
+  --color-fondo: #f5f7fa;
+  --color-borde: #d9dee7;
+  --color-tinta: #1f2937;
+  --color-tenue: #6b7280;
+  --color-completar: #fff4d6;
+
+  --color-amparo: #d96c48;
+  --color-rosario: #2a9d8f;
+  --color-clara: #6a4c93;
+
+  --color-sube: #15803d;
+  --color-baja: #b91c1c;
+  --color-aviso: #b45309;
+}
+
+body {
+  background: var(--color-fondo);
+  color: var(--color-tinta);
+}
+
+/* Números alineados en tablas */
+.num {
+  font-variant-numeric: tabular-nums;
+}
