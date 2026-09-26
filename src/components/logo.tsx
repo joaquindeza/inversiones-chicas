@@ -2,6 +2,8 @@ import logos from "@/lib/logos.json";
 
 // Logos que son blancos: van sobre un círculo oscuro para que se vean.
 const FONDO_OSCURO = new Set(["AMZN.png", "DIS.png", "HIMS.png", "NKE.png", "NOW.png", "QQQ.png", "UBER.png", "V.png"]);
+// Logos que son un cuadrado de color lleno: ocupan todo el círculo.
+const LLENAR = new Set(["YPF.png"]);
 const MAPA = logos as Record<string, string>;
 
 /**
@@ -22,7 +24,7 @@ export function Logo({ ticker, color = "#9CA3AF", tam = 24 }: { ticker: string; 
   return (
     // eslint-disable-next-line @next/next/no-img-element -- íconos chicos y estáticos, no hace falta next/image
     <img src={`/logos/${archivo}`} alt="" width={tam} height={tam} loading="lazy"
-      className={`inline-block rounded-full object-contain align-middle border border-borde ${FONDO_OSCURO.has(archivo) ? "bg-tinta p-0.5" : "bg-white"}`}
+      className={`inline-block rounded-full align-middle border border-borde ${LLENAR.has(archivo) ? "object-cover" : "object-contain"} ${FONDO_OSCURO.has(archivo) ? "bg-tinta p-0.5" : "bg-white"}`}
       style={estilo} />
   );
 }
