@@ -43,7 +43,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
               <BotonesVista />
             </div>
           </header>
-          <main className="flex-1 px-4 md:px-8 py-6 max-w-7xl w-full">{children}</main>
+          <main className="flex-1 px-4 md:px-8 py-6 max-w-[1600px] w-full">{children}</main>
         </div>
       </div>
     </MepProvider>

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { perfilActual } from "@/lib/sesion";
 import { clienteAdmin } from "@/lib/supabase/admin";
+import { puedeConfigurar } from "@/app/bienvenida/actions";
 import { SelectorPerfiles, type PerfilLogin } from "./selector";
 
 export const metadata = { title: "Entrar · Inversiones Chicas" };
@@ -17,6 +18,9 @@ export default async function LoginPage() {
       </main>
     );
   }
+
+  // Primera vez (todavía no hay usuarios): a la pantalla de configuración inicial.
+  if (await puedeConfigurar()) redirect("/bienvenida");
 
   // Solo nombre y color de los perfiles que tienen usuario creado. Nada más sale del servidor.
   const admin = clienteAdmin();

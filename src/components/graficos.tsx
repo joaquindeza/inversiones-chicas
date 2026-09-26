@@ -72,6 +72,9 @@ export function Evolucion({ puntos, color = "#0B2545", alto = 240 }: { puntos: P
         <span className="flex items-center gap-1.5"><span className="w-4 h-0.5" style={{ background: color }} />Lo que vale</span>
         <span className="flex items-center gap-1.5"><span className="w-4 border-t-2 border-dashed border-tenue" />Lo aportado</span>
       </div>
+      {datos.length === 1 && (
+        <p className="text-xs text-tenue mb-1">Por ahora hay un solo mes: la línea aparece cuando se cierre el próximo.</p>
+      )}
       <div style={{ height: alto }}>
         <ResponsiveContainer>
           <LineChart data={datos} margin={{ top: 8, right: 12, bottom: 0, left: 0 }}>
@@ -79,7 +82,7 @@ export function Evolucion({ puntos, color = "#0B2545", alto = 240 }: { puntos: P
             <XAxis dataKey="mes" tickFormatter={fmtMes} tick={{ fontSize: 12, fill: "#6b7280" }} axisLine={false} tickLine={false} />
             <YAxis tickFormatter={fmtEje} width={oculto ? 8 : 70} tick={{ fontSize: 12, fill: "#6b7280" }} axisLine={false} tickLine={false} />
             <Tooltip content={<TooltipEvolucion />} />
-            <Line dataKey="aportado" stroke="#6b7280" strokeDasharray="5 4" strokeWidth={2} dot={false} isAnimationActive={false} />
+            <Line dataKey="aportado" stroke="#6b7280" strokeDasharray="5 4" strokeWidth={2} dot={datos.length === 1 ? { r: 4, fill: "#6b7280", stroke: "#fff", strokeWidth: 2 } : false} isAnimationActive={false} />
             <Line dataKey="patrimonio" stroke={color} strokeWidth={2} dot={{ r: 4, fill: color, stroke: "#fff", strokeWidth: 2 }} isAnimationActive={false} connectNulls />
           </LineChart>
         </ResponsiveContainer>
