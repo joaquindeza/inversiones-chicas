@@ -58,14 +58,15 @@ export function Dona({ porciones, alto = 200 }: { porciones: Porcion[]; alto?: n
   const datos = filas.map((f) => ({ ...f, fill: f.color }));
 
   return (
-    <div ref={caja}>
+    <div ref={caja} className="@container">
       {cat && (
         <button onClick={() => setAbierta(null)} className="mb-2 inline-flex items-center gap-1.5 text-sm font-semibold text-marino hover:underline">
           <span aria-hidden>←</span> Toda la cartera
           <span className="text-tenue font-normal">· {cat.nombre} = 100% (<Pct valor={cat.pct} /> de la cartera)</span>
         </button>
       )}
-      <div className="flex flex-col sm:flex-row items-center gap-4">
+      {/* lado a lado solo si la caja tiene lugar para las dos cosas; si no, la tabla va abajo */}
+      <div className="flex flex-col @[34rem]:flex-row items-center gap-4">
         <div style={{ width: alto, height: alto }} className="shrink-0 [&_*:focus]:outline-none"
           onClick={() => { if (!tocoPorcion.current && cat) setAbierta(null); tocoPorcion.current = false; }}>
           <ResponsiveContainer>
@@ -80,6 +81,7 @@ export function Dona({ porciones, alto = 200 }: { porciones: Porcion[]; alto?: n
             </PieChart>
           </ResponsiveContainer>
         </div>
+        <div className="w-full min-w-0 flex-1 overflow-x-auto">
         <table className="text-sm w-full">
           <tbody>
             {filas.map((f) => (
@@ -97,6 +99,7 @@ export function Dona({ porciones, alto = 200 }: { porciones: Porcion[]; alto?: n
             ))}
           </tbody>
         </table>
+        </div>
       </div>
       {!cat && filas.some((f) => f.abre) && <p className="text-xs text-tenue mt-2">Tocá una categoría para ver qué tiene adentro.</p>}
     </div>
