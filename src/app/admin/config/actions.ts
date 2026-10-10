@@ -1,26 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { exigirAdmin } from "@/lib/sesion";
 import { clienteAdmin } from "@/lib/supabase/admin";
-import { crearCliente } from "@/lib/supabase/server";
 
 export type Estado = { error?: string; ok?: string };
-
-export async function guardarObjetivos(_p: Estado, f: FormData): Promise<Estado> {
-  await exigirAdmin();
-  const supabase = await crearCliente();
-  for (const [k, v] of f.entries()) {
-    if (!k.startsWith("obj_")) continue;
-    const s = String(v).trim().replace(",", ".");
-    const pct = s === "" ? null : Number(s) / 100;
-    if (pct != null && (Number.isNaN(pct) || pct < 0 || pct > 1)) return { error: "Los objetivos van de 0 a 100%." };
-    const { error } = await supabase.from("categorias").update({ objetivo_pct: pct }).eq("id", Number(k.slice(4)));
-    if (error) return { error: error.message };
-  }
-  revalidatePath("/admin", "layout");
-  return { ok: "Objetivos guardados." };
-}
 
 /** Cambia el PIN de una hermana (6 dígitos) o la clave del admin. Nunca se lee de vuelta. */
 export async function cambiarClave(_p: Estado, f: FormData): Promise<Estado> {
