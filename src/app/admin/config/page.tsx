@@ -1,11 +1,11 @@
 import { Seccion, Titulo } from "@/components/ui";
 import { CredencialesIOL, PanelSync, SelectorFrecuencia } from "@/components/sync";
-import { categorias, credencialesIol, frecuenciaSync, hermanas, ultimoSync } from "@/lib/datos";
-import { FormClaves, FormObjetivos } from "./forms";
+import { credencialesIol, frecuenciaSync, hermanas, ultimoSync } from "@/lib/datos";
+import { FormClaves } from "./forms";
 
 export default async function Configuracion() {
-  const [cats, hs, creds, frecuencia, sync] = await Promise.all([
-    categorias(), hermanas(), credencialesIol(), frecuenciaSync(), ultimoSync(),
+  const [hs, creds, frecuencia, sync] = await Promise.all([
+    hermanas(), credencialesIol(), frecuenciaSync(), ultimoSync(),
   ]);
   const cred = new Map(creds.map((c) => [c.hermana_id, c]));
   return (
@@ -36,9 +36,12 @@ export default async function Configuracion() {
             </div>
           </div>
         </Seccion>
-        <Seccion titulo="Objetivo por categoría">
-          <p className="text-sm text-tenue mb-3">Perfil agresivo: ~15% en Bonos/ONs y el resto renta variable. Los vacíos no se comparan.</p>
-          <FormObjetivos categorias={cats.map((c) => ({ id: c.id, nombre: c.nombre, color: c.color, objetivo: c.objetivo_pct }))} />
+        <Seccion titulo="Objetivos de cartera">
+          <p className="text-sm text-tenue">
+            Los objetivos ahora son la <b>cartera ideal</b> de cada una (por categoría y por ticker, con versiones por fecha):
+            se arman en <a href="/admin/planificacion?tab=ideal" className="text-marino underline">Planificación → Cartera ideal</a>.
+            Las alertas de desvío comparan contra la ideal vigente.
+          </p>
         </Seccion>
         <Seccion titulo="Accesos">
           <p className="text-sm text-tenue mb-3">

@@ -318,6 +318,153 @@ export type Database = {
         }
         Relationships: []
       }
+      ideal_categorias: {
+        Row: {
+          categoria_id: number
+          ideal_id: number
+          pct: number
+        }
+        Insert: {
+          categoria_id: number
+          ideal_id: number
+          pct: number
+        }
+        Update: {
+          categoria_id?: number
+          ideal_id?: number
+          pct?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ideal_categorias_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ideal_categorias_ideal_id_fkey"
+            columns: ["ideal_id"]
+            isOneToOne: false
+            referencedRelation: "ideales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ideal_categorias_ideal_id_fkey"
+            columns: ["ideal_id"]
+            isOneToOne: false
+            referencedRelation: "v_ideal_vigente"
+            referencedColumns: ["ideal_id"]
+          },
+        ]
+      }
+      ideal_items: {
+        Row: {
+          ideal_id: number
+          orden: number
+          pct_categoria: number
+          ticker: string
+        }
+        Insert: {
+          ideal_id: number
+          orden?: number
+          pct_categoria: number
+          ticker: string
+        }
+        Update: {
+          ideal_id?: number
+          orden?: number
+          pct_categoria?: number
+          ticker?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ideal_items_ideal_id_fkey"
+            columns: ["ideal_id"]
+            isOneToOne: false
+            referencedRelation: "ideales"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ideal_items_ideal_id_fkey"
+            columns: ["ideal_id"]
+            isOneToOne: false
+            referencedRelation: "v_ideal_vigente"
+            referencedColumns: ["ideal_id"]
+          },
+          {
+            foreignKeyName: "ideal_items_ticker_fkey"
+            columns: ["ticker"]
+            isOneToOne: false
+            referencedRelation: "tickers"
+            referencedColumns: ["ticker"]
+          },
+          {
+            foreignKeyName: "ideal_items_ticker_fkey"
+            columns: ["ticker"]
+            isOneToOne: false
+            referencedRelation: "v_tickers"
+            referencedColumns: ["ticker"]
+          },
+        ]
+      }
+      ideales: {
+        Row: {
+          guardado_el: string
+          hermana_id: number
+          id: number
+          vigente_desde: string
+        }
+        Insert: {
+          guardado_el?: string
+          hermana_id: number
+          id?: never
+          vigente_desde: string
+        }
+        Update: {
+          guardado_el?: string
+          hermana_id?: number
+          id?: never
+          vigente_desde?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ideales_hermana_id_fkey"
+            columns: ["hermana_id"]
+            isOneToOne: false
+            referencedRelation: "hermanas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ideales_hermana_id_fkey"
+            columns: ["hermana_id"]
+            isOneToOne: false
+            referencedRelation: "v_categorias_hermana"
+            referencedColumns: ["hermana_id"]
+          },
+          {
+            foreignKeyName: "ideales_hermana_id_fkey"
+            columns: ["hermana_id"]
+            isOneToOne: false
+            referencedRelation: "v_efectivo"
+            referencedColumns: ["hermana_id"]
+          },
+          {
+            foreignKeyName: "ideales_hermana_id_fkey"
+            columns: ["hermana_id"]
+            isOneToOne: false
+            referencedRelation: "v_resumen_hermana"
+            referencedColumns: ["hermana_id"]
+          },
+          {
+            foreignKeyName: "ideales_hermana_id_fkey"
+            columns: ["hermana_id"]
+            isOneToOne: false
+            referencedRelation: "v_seguimiento"
+            referencedColumns: ["hermana_id"]
+          },
+        ]
+      }
       indices: {
         Row: {
           fecha: string
@@ -749,6 +896,7 @@ export type Database = {
           orden: number
           pct_nivel: number | null
           plan_id: number
+          precio_ars: number | null
           ticker: string
         }
         Insert: {
@@ -758,6 +906,7 @@ export type Database = {
           orden?: number
           pct_nivel?: number | null
           plan_id: number
+          precio_ars?: number | null
           ticker: string
         }
         Update: {
@@ -767,6 +916,7 @@ export type Database = {
           orden?: number
           pct_nivel?: number | null
           plan_id?: number
+          precio_ars?: number | null
           ticker?: string
         }
         Relationships: [
@@ -1243,6 +1393,7 @@ export type Database = {
           nombre: string | null
           plataforma: string | null
           precio: number | null
+          precio_fecha: string | null
           ticker: string
         }
         Insert: {
@@ -1254,6 +1405,7 @@ export type Database = {
           nombre?: string | null
           plataforma?: string | null
           precio?: number | null
+          precio_fecha?: string | null
           ticker: string
         }
         Update: {
@@ -1265,6 +1417,7 @@ export type Database = {
           nombre?: string | null
           plataforma?: string | null
           precio?: number | null
+          precio_fecha?: string | null
           ticker?: string
         }
         Relationships: [
@@ -1309,6 +1462,50 @@ export type Database = {
           usd: number | null
         }
         Relationships: []
+      }
+      v_ideal_vigente: {
+        Row: {
+          hermana_id: number | null
+          ideal_id: number | null
+          vigente_desde: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ideales_hermana_id_fkey"
+            columns: ["hermana_id"]
+            isOneToOne: false
+            referencedRelation: "hermanas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ideales_hermana_id_fkey"
+            columns: ["hermana_id"]
+            isOneToOne: false
+            referencedRelation: "v_categorias_hermana"
+            referencedColumns: ["hermana_id"]
+          },
+          {
+            foreignKeyName: "ideales_hermana_id_fkey"
+            columns: ["hermana_id"]
+            isOneToOne: false
+            referencedRelation: "v_efectivo"
+            referencedColumns: ["hermana_id"]
+          },
+          {
+            foreignKeyName: "ideales_hermana_id_fkey"
+            columns: ["hermana_id"]
+            isOneToOne: false
+            referencedRelation: "v_resumen_hermana"
+            referencedColumns: ["hermana_id"]
+          },
+          {
+            foreignKeyName: "ideales_hermana_id_fkey"
+            columns: ["hermana_id"]
+            isOneToOne: false
+            referencedRelation: "v_seguimiento"
+            referencedColumns: ["hermana_id"]
+          },
+        ]
       }
       v_mep_actual: {
         Row: {
@@ -1609,6 +1806,7 @@ export type Database = {
           nombre: string | null
           plataforma: string | null
           precio: number | null
+          precio_fecha: string | null
           precio_usd: number | null
           ticker: string | null
         }

@@ -30,7 +30,14 @@ solapa `Calc` del Excel y replican sus fórmulas).
   El admin la previsualiza con `/mi/ver/[id]`.
 - `src/app/reporte/[id]`: imagen del mes para WhatsApp. `src/app/bienvenida`: alta inicial de usuarios (solo localhost).
 - `supabase/functions/sync-iol`: el sync (Edge Function). Se dispara con el botón o con pg_cron (`configurar_sync`).
-- Lógica pura verificable: `src/lib/proyeccion.ts` (= Excel), `comparacion.ts`, `hitos.ts`, `avisos.ts`.
+- Lógica pura verificable: `src/lib/proyeccion.ts` (= Excel), `comparacion.ts`, `hitos.ts`, `avisos.ts`,
+  `rebalanceo.ts` (sugerencia de compras hacia la ideal) y `mercado.ts` (horario de BYMA y vigencia de precios).
+- Cartera ideal (Planificación → Cartera ideal): % por categoría y por ticker dentro de la categoría, una por hermana,
+  con versiones por fecha (`ideales`, `ideal_categorias`, `ideal_items`; `v_ideal_vigente`). Reemplaza a
+  `categorias.objetivo_pct`: `v_categorias_hermana` y las alertas de desvío comparan contra la ideal vigente.
+- El plan del mes se carga en nominales por nivel de riesgo; el monto sale de nominales × último precio.
+  `supabase/functions/cotizar-iol` (solo lectura) trae de IOL el precio de cualquier ticker, lo tengan o no;
+  con el mercado cerrado IOL devuelve el último operado. La página lo pide al entrar si el precio está viejo.
 - Datos externos: MEP de Ámbito; S&P 500 y Merval de Yahoo (API no oficial); tasa de plazo fijo del BCRA (v4).
 
 ## Migración desde el Excel (hecha el 26/09/2026)
